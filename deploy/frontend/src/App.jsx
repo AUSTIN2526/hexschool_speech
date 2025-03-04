@@ -44,44 +44,33 @@ const Chat = () => {
     exit: { opacity: 0, transition: { duration: 0.2 } }
   };
 
-  // === 以下為重點：styles 中去掉 root 的 height: '100vh'、chatContainer 的 overflow: 'hidden' ===
+  // 可以針對最外層做「佔滿螢幕、垂直排列」的設定
   const styles = {
-    root: {
+    pageContainer: {
+      width: '100vw',
+      height: '100vh',
       display: 'flex',
       flexDirection: 'column',
-      // 把 height 改成 minHeight，讓內容可以自然撐高
-      minHeight: '100vh',
-      bgcolor: theme.palette.mode === 'dark' ? '#121212' : '#f7f9fc',
+      backgroundColor: theme.palette.mode === 'dark' ? '#121212' : '#f7f9fc',
       transition: 'background-color 0.3s ease',
     },
-    chatContainer: {
+    // 中間主要可伸縮、可捲動的聊天區
+    centerArea: {
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
-      // 移除 overflow: 'hidden'，避免列表無法捲動
-      // position 可以保留，也可視情況拿掉
-      position: 'relative',
+      overflow: 'hidden', // 關鍵：確保只會在內層滾動
     },
     suggestionChips: {
       display: 'flex',
       flexWrap: 'wrap',
       gap: 1,
-      margin: theme.spacing(2),
+      p: 2,
       justifyContent: 'center',
+      flexShrink: 0, // 不要讓建議選單撐大或被擠壓
     },
-    suggestionButton: {
-      borderRadius: '16px',
-      backgroundColor: theme.palette.background.paper,
-      border: `1px solid ${theme.palette.primary.main}50`,
-      color: theme.palette.primary.main,
-      padding: theme.spacing(0.5, 1),
-      '&:hover': {
-        backgroundColor: theme.palette.primary.main,
-        color: theme.palette.primary.contrastText,
-      },
-      textTransform: 'none',
-    },
-    messageList: {
+    // wrap 一層，把真正的「訊息列表」做 overflow: auto
+    chatContainer: {
       flex: 1,
       overflowY: 'auto',
       padding: theme.spacing(2),
@@ -100,30 +89,8 @@ const Chat = () => {
       '&::-webkit-scrollbar-track': {
         backgroundColor: 'transparent',
       },
-      // 預留空間給固定在下方的輸入框
+      // 避免手機上方輸入框擋住最後訊息
       paddingBottom: isMobile ? '140px' : '100px',
-    },
-    messageSystem: {
-      display: 'flex',
-      justifyContent: 'center',
-      mb: 2,
-      mx: 'auto',
-      maxWidth: '85%',
-    },
-    messageBubbleSystem: {
-      backgroundColor:
-        theme.palette.mode === 'dark'
-          ? 'rgba(255,255,255,0.05)'
-          : 'rgba(0,0,0,0.03)',
-      color: theme.palette.text.secondary,
-      padding: theme.spacing(1),
-      borderRadius: '12px',
-      textAlign: 'center',
-      fontStyle: 'italic',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 1,
-      fontSize: '0.9rem',
     },
     messageUser: {
       display: 'flex',
@@ -166,56 +133,30 @@ const Chat = () => {
       marginTop: '4px',
       textAlign: 'right',
     },
+    // 最下面的輸入框容器，flexShrink: 0 代表它不會被擠壓
     inputContainer: {
-      position: 'fixed',
-      bottom: 0,
-      left: 0,
-      right: 0,
+      flexShrink: 0,
       p: theme.spacing(1.5, 2),
       bgcolor: theme.palette.background.paper,
       borderTop: `1px solid ${theme.palette.divider}`,
       boxShadow: '0 -4px 12px rgba(0,0,0,0.05)',
-      zIndex: 1200,
     },
     inputForm: {
       display: 'flex',
       alignItems: 'center',
       gap: theme.spacing(1),
-      maxWidth: '900px',
-      margin: '0 auto',
       width: '100%',
+      // 如果想要在大螢幕中間對齊，可加上 margin: '0 auto' + maxWidth
+      // maxWidth: 900,
+      // margin: '0 auto',
     },
     textField: {
       flex: 1,
-      bgcolor: theme.palette.background.default,
       borderRadius: '12px',
-      transition: 'box-shadow 0.2s ease',
       '& .MuiOutlinedInput-root': {
         borderRadius: '12px',
         padding: theme.spacing(1, 1.5),
-        '& fieldset': {
-          borderColor:
-            theme.palette.mode === 'dark'
-              ? 'rgba(255,255,255,0.15)'
-              : 'rgba(0,0,0,0.12)',
-          transition: 'border-color 0.2s ease',
-        },
-        '&:hover fieldset': {
-          borderColor: theme.palette.primary.main,
-        },
-        '&.Mui-focused': {
-          boxShadow: `0 0 0 2px ${theme.palette.primary.main}30`,
-        },
-        '&.Mui-focused fieldset': {
-          borderColor: theme.palette.primary.main,
-          borderWidth: '1px',
-        },
       },
-    },
-    inputActions: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: theme.spacing(1),
     },
     restartButton: {
       height: 40,
@@ -223,17 +164,6 @@ const Chat = () => {
       minWidth: 40,
       borderRadius: '50%',
       padding: 0,
-      bgcolor:
-        theme.palette.mode === 'dark'
-          ? 'rgba(255,255,255,0.1)'
-          : 'rgba(0,0,0,0.06)',
-      color: theme.palette.text.secondary,
-      '&:hover': {
-        bgcolor:
-          theme.palette.mode === 'dark'
-            ? 'rgba(255,255,255,0.2)'
-            : 'rgba(0,0,0,0.12)',
-      },
       transition: 'transform 0.2s ease, background-color 0.2s ease',
     },
     sendButton: {
@@ -242,16 +172,10 @@ const Chat = () => {
       minWidth: 40,
       borderRadius: '50%',
       padding: 0,
-      bgcolor: theme.palette.primary.main,
-      color: 'white',
-      '&:hover': {
-        bgcolor: theme.palette.primary.dark,
-      },
       transition: 'transform 0.2s ease, background-color 0.2s ease',
       '&:active': {
         transform: 'scale(0.95)',
       },
-      boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
     },
     codeBlock: {
       position: 'relative',
@@ -271,10 +195,6 @@ const Chat = () => {
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: theme.spacing(0.5, 1),
-      backgroundColor:
-        theme.palette.mode === 'dark'
-          ? 'rgba(255,255,255,0.05)'
-          : 'rgba(0,0,0,0.03)',
       borderBottom: `1px solid ${theme.palette.divider}`,
     },
     codeLanguage: {
@@ -284,9 +204,6 @@ const Chat = () => {
     },
     copyButton: {
       padding: 4,
-      '&:hover': {
-        backgroundColor: theme.palette.action.hover,
-      },
     },
     avatar: {
       marginRight: theme.spacing(1),
@@ -303,8 +220,31 @@ const Chat = () => {
       backgroundColor: theme.palette.secondary.main,
       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
     },
+    systemMsgContainer: {
+      display: 'flex',
+      justifyContent: 'center',
+      mb: 2,
+      mx: 'auto',
+      maxWidth: '85%',
+    },
+    systemMsgBubble: {
+      backgroundColor:
+        theme.palette.mode === 'dark'
+          ? 'rgba(255,255,255,0.05)'
+          : 'rgba(0,0,0,0.03)',
+      color: theme.palette.text.secondary,
+      padding: theme.spacing(1),
+      borderRadius: '12px',
+      textAlign: 'center',
+      fontStyle: 'italic',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 1,
+      fontSize: '0.9rem',
+    },
   };
 
+  // 建立程式碼區塊組件
   const CodeBlock = ({ className, children }) => {
     const language = className ? className.replace('language-', '') : '';
     const displayLanguage = language || 'text';
@@ -370,6 +310,7 @@ const Chat = () => {
     );
   };
 
+  // 負責把文字轉成 Markdown (含程式碼) 的函式
   const renderMessageContent = (text) => {
     return (
       <ReactMarkdown
@@ -477,6 +418,18 @@ const Chat = () => {
     );
   };
 
+  // 用於保持訊息捲到最底
+  const scrollToBottom = () => {
+    if (chatBoxRef.current) {
+      const scrollHeight = chatBoxRef.current.scrollHeight;
+      const height = chatBoxRef.current.clientHeight;
+      chatBoxRef.current.scrollTo({
+        top: scrollHeight - height,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -495,6 +448,7 @@ const Chat = () => {
     const prompt = input.trim();
     if (!prompt && !restart) return;
 
+    // 使用者訊息
     if (!restart) {
       setMessages((prev) => [
         ...prev,
@@ -513,8 +467,7 @@ const Chat = () => {
     try {
       const payload = restart ? { restart: true } : { prompt };
 
-      // 這裡的 fetch 只是示範，實際要改成你可用的 API
-      const response = await fetch('http://203.64.104.21:5000/generate', {
+      const response = await fetch('http://127.0.0.1:5000/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -541,6 +494,7 @@ const Chat = () => {
           },
         ]);
       } else {
+        // 給一個「準備串流中」的假訊息 (bot)
         setMessages((prev) => [
           ...prev,
           {
@@ -552,6 +506,7 @@ const Chat = () => {
         ]);
       }
 
+      // 讀取 SSE
       const reader = response.body.getReader();
       const decoder = new TextDecoder('utf-8');
       let assistantReply = '';
@@ -590,6 +545,7 @@ const Chat = () => {
         }
       }
 
+      // 串流完成後，更新 isStreaming 狀態
       setMessages((prev) => {
         const updated = [...prev];
         const lastIndex = updated.length - 1;
@@ -601,6 +557,7 @@ const Chat = () => {
     } catch (error) {
       console.error('聊天錯誤:', error);
       setError(error.message);
+      // 若發生錯誤，但剛才已加了一條空白 bot 訊息，就把它去掉
       setMessages((prev) => {
         const lastMsg = prev[prev.length - 1];
         if (lastMsg && lastMsg.sender === 'bot' && !lastMsg.text) {
@@ -634,18 +591,6 @@ const Chat = () => {
     }
   };
 
-  const scrollToBottom = () => {
-    if (chatBoxRef.current) {
-      const scrollHeight = chatBoxRef.current.scrollHeight;
-      const height = chatBoxRef.current.clientHeight;
-      const maxScrollTop = scrollHeight - height;
-      chatBoxRef.current.scrollTo({
-        top: maxScrollTop,
-        behavior: 'smooth',
-      });
-    }
-  };
-
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
       e.preventDefault();
@@ -662,101 +607,105 @@ const Chat = () => {
     });
   };
 
+  // 範例提示
   const suggestions = [
-    '你能解釋一下 JavaScript 閉包嗎？',
+    '你是誰啊？',
     '給我寫一個快速排序算法的 Python 實現',
-    '解釋 React 中的 useEffect 鉤子',
+    '你能做哪些事情?',
     '幫我寫一個簡單的 API 請求函數',
   ];
 
   return (
-    <Box sx={styles.root}>
-      {messages.length === 0 && (
-        <Box sx={styles.suggestionChips}>
-          {suggestions.map((text, idx) => (
-            <Button
-              key={idx}
-              variant="outlined"
-              sx={styles.suggestionButton}
-              onClick={() => setInput(text)}
-            >
-              {text}
-            </Button>
-          ))}
-        </Box>
-      )}
-
-      {/* 
-        注意：ref 設在外層 chatContainer，
-        讓 List 預留的捲動空間可以正常顯示
-      */}
-      <Box sx={styles.chatContainer} ref={chatBoxRef}>
-        <List sx={styles.messageList}>
-          <AnimatePresence initial={false}>
-            {messages.map((msg, idx) => (
-              <motion.div
+    <Box sx={styles.pageContainer}>
+      {/* 中間主要可伸縮區域 */}
+      <Box sx={styles.centerArea}>
+        {/* 只有在沒訊息時才顯示一些建議提示；想要常駐也行 */}
+        {messages.length === 0 && (
+          <Box sx={styles.suggestionChips}>
+            {suggestions.map((text, idx) => (
+              <Button
                 key={idx}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                variants={messageVariants}
+                variant="outlined"
+                sx={{ textTransform: 'none' }}
+                onClick={() => setInput(text)}
               >
-                <ListItem disableGutters sx={{ flexDirection: 'column' }}>
-                  {msg.sender === 'system' ? (
-                    <Paper sx={styles.messageBubbleSystem}>
-                      {renderMessageContent(msg.text)}
-                      <Typography sx={styles.messageTime}>
-                        {formatTime(msg.timestamp)}
-                      </Typography>
-                    </Paper>
-                  ) : (
-                    <Box
-                      sx={
-                        msg.sender === 'user'
-                          ? styles.messageUser
-                          : styles.messageBot
-                      }
-                    >
-                      <Avatar
-                        sx={
-                          msg.sender === 'user'
-                            ? styles.userAvatar
-                            : styles.avatar
-                        }
-                      >
-                        {msg.sender === 'user' ? 'U' : 'A'}
-                      </Avatar>
-
-                      <Paper
-                        sx={
-                          msg.sender === 'user'
-                            ? styles.messageBubbleUser
-                            : styles.messageBubbleBot
-                        }
-                      >
-                        {renderMessageContent(msg.text)}
-                        <Typography sx={styles.messageTime}>
-                          {formatTime(msg.timestamp)}
-                        </Typography>
-                      </Paper>
-                    </Box>
-                  )}
-                </ListItem>
-              </motion.div>
+                {text}
+              </Button>
             ))}
-          </AnimatePresence>
-          {isLoading && (
-            <ListItem>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CircularProgress size={20} />
-                <Typography variant="body2">AI 正在思考中...</Typography>
-              </Box>
-            </ListItem>
-          )}
-        </List>
+          </Box>
+        )}
+
+        {/* 這裡是真正放「訊息列表」的區域 */}
+        <Box sx={styles.chatContainer} ref={chatBoxRef}>
+          <List sx={{ p: 0, m: 0 }}>
+            <AnimatePresence initial={false}>
+              {messages.map((msg, idx) => (
+                <motion.div
+                  key={idx}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={messageVariants}
+                >
+                  <ListItem disableGutters sx={{ flexDirection: 'column' }}>
+                    {msg.sender === 'system' ? (
+                      <Box sx={styles.systemMsgContainer}>
+                        <Paper sx={styles.systemMsgBubble}>
+                          {renderMessageContent(msg.text)}
+                          <Typography sx={styles.messageTime}>
+                            {formatTime(msg.timestamp)}
+                          </Typography>
+                        </Paper>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={
+                          msg.sender === 'user'
+                            ? styles.messageUser
+                            : styles.messageBot
+                        }
+                      >
+                        <Avatar
+                          sx={
+                            msg.sender === 'user'
+                              ? styles.userAvatar
+                              : styles.avatar
+                          }
+                        >
+                          {msg.sender === 'user' ? 'U' : 'A'}
+                        </Avatar>
+                        <Paper
+                          sx={
+                            msg.sender === 'user'
+                              ? styles.messageBubbleUser
+                              : styles.messageBubbleBot
+                          }
+                        >
+                          {renderMessageContent(msg.text)}
+                          <Typography sx={styles.messageTime}>
+                            {formatTime(msg.timestamp)}
+                          </Typography>
+                        </Paper>
+                      </Box>
+                    )}
+                  </ListItem>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            {isLoading && (
+              <ListItem>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CircularProgress size={20} />
+                  <Typography variant="body2">AI 正在思考中...</Typography>
+                </Box>
+              </ListItem>
+            )}
+          </List>
+        </Box>
       </Box>
 
-      {/* 固定在底部的輸入區塊 */}
+      {/* 底部固定輸入區（不會被擠壓） */}
       <Box sx={styles.inputContainer}>
         <form style={styles.inputForm} onSubmit={handleSubmit}>
           <TextField
@@ -771,22 +720,24 @@ const Chat = () => {
             variant="outlined"
             sx={styles.textField}
           />
-          <Box sx={styles.inputActions}>
-            <Tooltip title="重新開始對話">
-              <IconButton onClick={handleRestart} sx={styles.restartButton}>
-                <RestartAltIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="發送訊息">
-              <IconButton
-                type="submit"
-                disabled={isLoading}
-                sx={styles.sendButton}
-              >
-                <SendIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
+          <Tooltip title="重新開始對話">
+            <IconButton
+              onClick={handleRestart}
+              disabled={isLoading}
+              sx={styles.restartButton}
+            >
+              <RestartAltIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="發送訊息">
+            <IconButton
+              type="submit"
+              disabled={isLoading}
+              sx={{ ...styles.sendButton, backgroundColor: theme.palette.primary.main, color: '#fff' }}
+            >
+              <SendIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </form>
       </Box>
 
