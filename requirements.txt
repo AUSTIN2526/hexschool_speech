@@ -1,0 +1,9 @@
+transformers
+accelerate
+peft
+bitsandbytes
+flask
+flask_cors
+tqdm
+matplotlib
+pandas
