@@ -42,9 +42,9 @@ pip install -r requirements.txt
 ---
 
 ### 📌 1-3. 啟動後端服務
-（依專案實際檔案調整）
+進入後端資料夾`backend/`：
 ```bash
-python app.py
+python main.py
 ```
 後端服務將在 `http://localhost:5000/` 運行。
 
@@ -63,7 +63,7 @@ npm -v
 ---
 
 ### 📌 2-2. 安裝前端依賴
-進入前端資料夾（例如 `frontend/`）：
+進入前端資料夾`frontend/`：
 
 ```bash
 cd frontend
@@ -82,8 +82,7 @@ npm install
 ---
 
 # 📝 補充說明
-- 後端 Flask 服務通常在 `5000` port，前端在 `3000` port，請注意跨域（CORS）設定。
-- 前後端可能各有 `.env` 環境變數設定，請參考專案文件或範例 `.env.example`。
+- 後端 Flask 服務通常在 `5000` port，vite前端在 `5173` port，請注意跨域（CORS）設定。
 - `bitsandbytes` 與模型量化需 GPU 支援，確保驅動與 CUDA 環境正確。
 - 請將訓練後的模型放入到backend資料夾中並在`main.py`載入對應的路徑
 ---
